@@ -1,0 +1,170 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  id                String @id @unique
+  fullName          String @default("")
+  email             String @unique
+  countryCode       String @default("")
+  phoneCountryCode  String @default("")
+  phoneNumber       String @default("")
+  cnicNumber        String @default("")
+  cnicExpiry        String @default("")
+  cnicFrontPhotoUrl String @default("")
+  CnicBackCopyUrl   String @default("")
+  roleId            String @default("")
+  createdAtMillis   BigInt
+  updatedAtMillis   BigInt
+
+  @@map("users")
+}
+
+model UserAuthCodes {
+  id              String @id @unique
+  code            String @unique
+  emailHash       String
+  expiresAtMillis BigInt
+
+  @@map("user_auth_codes")
+}
+
+model RefreshToken {
+  id              String @id @unique
+  token           String @unique
+  userId          String
+  deviceId        String @unique
+  expiresAtMillis BigInt
+
+  @@map("refresh_tokens")
+}
+
+model UserRoles {
+  id   String @id @unique
+  name String @unique
+
+  @@map("user_roles")
+}
+
+model ContactInformation {
+  id              String @id @unique
+  userId          String @unique
+  address         String @default("")
+  city            String @default("")
+  country         String @default("")
+  postalCode      String @default("")
+  state           String @default("")
+  createdAtMillis BigInt
+  updatedAtMillis BigInt
+
+  @@map("contact_information")
+}
+
+model UserSocialLinks {
+  id              String @id @unique
+  userId          String @unique
+  website         String @default("")
+  facebook        String @default("")
+  instagram       String @default("")
+  linkedin        String @default("")
+  youtube         String @default("")
+  tiktok          String @default("")
+  createdAtMillis BigInt
+  updatedAtMillis BigInt
+
+  @@map("user_social_links")
+}
+
+model Destinations {
+  id              String  @id @unique @default(uuid())
+  name            String  @unique
+  slug            String  @unique
+  coverPhotoUrl   String  @default("")
+  backgroundUrl   String  @default("")
+  thumbnailUrl    String  @default("")
+  latitude        String  @default("")
+  longitude       String  @default("")
+  description     String  @default("")
+  isArchived      Boolean @default(false)
+  createdAtMillis BigInt
+  updatedAtMillis BigInt
+
+  @@map("destinations")
+}
+
+model Partners {
+  id                               String  @id @unique @default(uuid())
+  name                             String  @unique
+  slug                             String  @unique
+  description                      String  @default("")
+  logoUrl                          String  @default("")
+  city                             String  @default("")
+  state                            String  @default("")
+  isLicensed                       Boolean @default(false)
+  licenseNo                        String  @default("")
+  licenseCopyURL                   String  @default("")
+  isArchived                       Boolean @default(false)
+  createdAtMillis                  BigInt
+  updatedAtMillis                  BigInt  @default(0)
+  cloudinaryLogoPublicId           String  @default("")
+  cloudinaryLicenseCopyURLPublicId String  @default("")
+
+  @@map("partners")
+}
+
+model Trips {
+  id                String   @id @unique @default(uuid())
+  title             String   @default("")
+  description       String   @default("")
+  startDate         String   @default("")
+  endDate           String   @default("")
+  startDesitination String   @default("")
+  endDestination    String   @default("")
+  totalDays         Int      @default(0)
+  totalSeats        Int      @default(0)
+  bookedSeats       Int      @default(0)
+  perPersonCharges  Int      @default(0)
+  coupleCharges     Int      @default(0)
+  familyCharges     Int      @default(0)
+  advancePayment    Int      @default(0)
+  roomSharing       Int      @default(0)
+  coverPhotoUrl     String   @default("")
+  thumbnailUrl      String   @default("")
+  placesIncluded    String[] @default([])
+  servicesIncluded  String[] @default([])
+  servicesExcluded  String[] @default([])
+  isArchived        Boolean  @default(false)
+  partnerId         String   @default("")
+  createdAtMillis   BigInt
+  updatedAtMillis   BigInt   @default(0)
+
+  @@map("trips")
+}
+
+model TripPhotos {
+  id              String   @id @unique @default(uuid())
+  tripId          String   @unique
+  photosUrl       String[] @default([])
+  createdAtMillis BigInt
+  updatedAtMillis BigInt   @default(0)
+
+  @@map("trip_photos")
+}
+
+model Categories {
+  id              String @id @unique @default(uuid())
+  name            String @unique
+  slug            String @unique
+  createdAtMillis BigInt
+  updatedAtMillis BigInt @default(0)
+
+  @@map("categories")
+}
