@@ -6,6 +6,7 @@ import { AccessTokenGuard } from './auth/guards/accessToken.guard';
 import Constants from './utils/Constants';
 
 export const API_VERSION = 'v1';
+export const APP_PORT = process.env.PORT || 3000;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
