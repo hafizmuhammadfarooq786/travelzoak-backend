@@ -6,7 +6,7 @@ import { AccessTokenGuard } from './auth/guards/accessToken.guard';
 import Constants from './utils/Constants';
 
 export const API_VERSION = 'v1';
-// export const APP_PORT = process.env.PORT || 3000;
+export const APP_PORT = process.env.PORT || 3000;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -25,6 +25,6 @@ async function bootstrap() {
 
   app.use(json({ limit: '10mb' }));
   app.use(urlencoded({ limit: '10mb', extended: true }));
-  await app.listen(3000);
+  await app.listen(APP_PORT);
 }
 bootstrap();

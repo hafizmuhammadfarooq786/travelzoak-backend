@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
+import { Public } from 'src/auth/decorators';
 import { CreatePartnerDto } from './dto/create-partner.dto';
 import { UpdatePartnerLicenseCopyDto } from './dto/update-license-copy.dto';
 import { UpdatePartnerLogoDto } from './dto/update-partner-logo.dto';
@@ -22,6 +23,7 @@ export class PartnersController {
     return await this.partnersService.addPartner(createPartnerDto);
   }
 
+  @Public()
   @Get()
   getAllPartners() {
     return this.partnersService.getPartners();

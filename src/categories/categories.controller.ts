@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
+import { Public } from 'src/auth/decorators';
 import { CategoriesService } from './categories.service';
 import { CategoryDto } from './dto/category.dto';
 
@@ -24,6 +25,7 @@ export class CategoriesController {
     return this.categoriesService.addCategory(createCategoryDto);
   }
 
+  @Public()
   @Get()
   async getAllCatogires() {
     return await this.categoriesService.getCategories();

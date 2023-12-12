@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
+import { Public } from 'src/auth/decorators';
 import { DestinationsService } from './destinations.service';
 import { CreateDestinationDto } from './dto/create-destination.dto';
 import { UpdateDestinationDto } from './dto/update-destination.dto';
@@ -27,6 +28,7 @@ export class DestinationsController {
     );
   }
 
+  @Public()
   @Get()
   async getAllDestinations() {
     return await this.destinationsService.getDestinations();
