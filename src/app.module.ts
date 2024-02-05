@@ -15,6 +15,10 @@ import { SentryService } from './sentry/sentry.service';
 import { SocialLinksModule } from './social-links/social-links.module';
 import { UserRolesModule } from './user-roles/user-roles.module';
 import { UserModule } from './user/user.module';
+import { TripsModule } from './trips/trips.module';
+import { TripPhotosModule } from './trip-photos/trip-photos.module';
+import { ReviewsModule } from './reviews/reviews.module';
+import { BookingsModule } from './bookings/bookings.module';
 
 @Module({
   imports: [
@@ -43,6 +47,10 @@ import { UserModule } from './user/user.module';
     DestinationsModule,
     CategoriesModule,
     PartnersModule,
+    TripsModule,
+    TripPhotosModule,
+    ReviewsModule,
+    BookingsModule,
   ],
   controllers: [AppController],
   providers: [

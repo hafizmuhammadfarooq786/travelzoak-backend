@@ -168,3 +168,30 @@ model Categories {
 
   @@map("categories")
 }
+
+model Reviews {
+  id              String  @id @unique @default(uuid())
+  tripId          String  @unique
+  rating          Int     @default(0)
+  comment         String  @default("")
+  createdAtMillis BigInt
+  updatedAtMillis BigInt  @default(0)
+  isPublished     Boolean @default(false)
+
+  @@map("reviews")
+}
+
+model Bookings {
+  id              String @id @unique @default(uuid())
+  userId          String @unique
+  tripId          String @unique
+  totalSeats      Int    @default(0)
+  totalAmount     Int    @default(0)
+  advancePayment  Int    @default(0)
+  remainingAmount Int    @default(0)
+  status          String @default("")
+  createdAtMillis BigInt
+  updatedAtMillis BigInt @default(0)
+
+  @@map("bookings")
+}
