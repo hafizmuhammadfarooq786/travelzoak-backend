@@ -83,6 +83,7 @@ const StringUtils = {
     FAILED_TO_UPDATE_CATEGORY: 'Failed to update category',
     FAILED_TO_DELETE_CATEGORY: 'Failed to delete category',
 
+    FAILED_TO_CREATE_PARTNERS_FROM_SEED: 'Failed to create partners from seed',
     FAILED_TO_CREATE_PARTNER: 'Failed to create partner',
     FAILED_TO_GET_PARTNERS: 'Failed to get partners',
     INAVLID_PARTNER_ID: 'Invalid partner id',
@@ -91,6 +92,22 @@ const StringUtils = {
 
     FAILED_TO_UPLOAD_IMAGE: 'Failed to upload image',
     FAILED_TO_REPLACE_IMAGE: 'Failed to replace image',
+
+    FAILED_TO_CREATE_TRIPS_FROM_SEED: 'Failed to create trips from seed',
+    FAILED_TO_CREATE_TRIP: 'Failed to create trip',
+    FAILED_TO_GET_TRIPS: 'Failed to get trips',
+    INAVLID_TRIP_ID: 'Invalid trip id',
+    FAILED_TO_UPDATE_TRIP: 'Failed to update trip',
+    FAILED_TO_ARCHIVE_TRIP: 'Failed to archive trip',
+    FAILED_TO_DELETE_IMAGE: 'Failed to delete image',
+
+    FAILED_TO_CREATE_TRIPS_PHOTOS_FROM_SEED:
+      'Failed to create trips photos from seed',
+    FAILED_TO_CREATE_TRIP_PHOTOS: 'Failed to create trip photos',
+    FAILED_TO_GET_TRIP_PHOTOS: 'Failed to get trip photos',
+    FAILED_TO_UPLOAD_TRIP_PHOTOS: 'Failed to upload trip photos',
+    FAILED_TO_UPDATE_TRIP_PHOTOS: 'Failed to update trip photos',
+    FAILED_TO_DELETE_TRIP_PHOTOS: 'Failed to delete trip photos',
   },
 };
 

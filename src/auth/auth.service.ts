@@ -148,7 +148,6 @@ export class UserAuthService {
         // Check for User record againts email address
         const user = await this.prisma.users.findUnique({
           where: { email },
-          select: Constants.SELECT_KEYS_FOR_USERS,
         });
 
         // If User does not exists in User Table that means user has no account
@@ -266,7 +265,6 @@ export class UserAuthService {
         createdAtMillis: this.helperService.getCurrentTimestampInMilliseconds(),
         updatedAtMillis: this.helperService.getCurrentTimestampInMilliseconds(),
       },
-      select: Constants.SELECT_KEYS_FOR_USERS,
     });
     return isUserCreated ? true : false;
   }

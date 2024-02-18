@@ -66,4 +66,18 @@ export class ImageUploadsService {
       );
     });
   }
+
+  // Delete an image from Cloudinary and return the result message
+  async deleteImage(publicId: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      cloudinary.uploader.destroy(publicId, (error, result) => {
+        if (error) {
+          this.logger.error(error.message);
+          reject(StringUtils.MESSAGE.FAILED_TO_DELETE_IMAGE);
+        } else {
+          resolve(result.result);
+        }
+      });
+    });
+  }
 }

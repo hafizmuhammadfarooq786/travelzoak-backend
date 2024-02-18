@@ -6,7 +6,6 @@ import {
   ResponseService,
   SuccessApiResponse,
 } from 'src/response.service';
-import Constants from 'src/utils/Constants';
 import StringUtils from 'src/utils/StringUtils';
 import { CreateDestinationDto } from './dto/create-destination.dto';
 import { UpdateDestinationDto } from './dto/update-destination.dto';
@@ -27,6 +26,7 @@ export class DestinationsService {
     try {
       // Create a list of destinations
       const list = DestinationsList.map((destination) => ({
+        id: this.helperService.generateUniqueId(),
         ...destination,
         slug: this.helperService.slugify(destination.name),
         createdAtMillis: this.helperService.getCurrentTimestampInMilliseconds(),
@@ -57,6 +57,7 @@ export class DestinationsService {
     try {
       const destination = await this.prisma.destinations.create({
         data: {
+          id: this.helperService.generateUniqueId(),
           ...createDestinationDto,
           slug: this.helperService.slugify(createDestinationDto.name),
           createdAtMillis:
@@ -64,7 +65,6 @@ export class DestinationsService {
           updatedAtMillis:
             this.helperService.getCurrentTimestampInMilliseconds(),
         },
-        select: Constants.SELECT_KEYS_FOR_DESTINATIONS,
       });
 
       if (!destination) {
@@ -83,7 +83,6 @@ export class DestinationsService {
   async getDestinations(): Promise<SuccessApiResponse | ErrorApiResponse> {
     try {
       const destinations = await this.prisma.destinations.findMany({
-        select: Constants.SELECT_KEYS_FOR_DESTINATIONS,
       });
 
       if (!destinations) {
@@ -107,7 +106,6 @@ export class DestinationsService {
         where: {
           id,
         },
-        select: Constants.SELECT_KEYS_FOR_DESTINATIONS,
       });
 
       if (!destination) {
@@ -138,7 +136,6 @@ export class DestinationsService {
           updatedAtMillis:
             this.helperService.getCurrentTimestampInMilliseconds(),
         },
-        select: Constants.SELECT_KEYS_FOR_DESTINATIONS,
       });
 
       if (!destination) {

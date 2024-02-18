@@ -8,7 +8,6 @@ import {
   ResponseService,
   SuccessApiResponse,
 } from 'src/response.service';
-import Constants from 'src/utils/Constants';
 import StringUtils from 'src/utils/StringUtils';
 import { Categories } from './seed';
 
@@ -21,12 +20,13 @@ export class CategoriesService {
   ) {}
 
   // This method is used to create categories from seed data
-  async createManyCategoriesFromSeed(): Promise<
+  async createCategoriesFromSeed(): Promise<
     SuccessApiResponse | ErrorApiResponse
   > {
     try {
       // Create a list of destinations
       const list = Categories.map((category) => ({
+        id: this.helperService.generateUniqueId(),
         ...category,
         slug: this.helperService.slugify(category.name),
         createdAtMillis: this.helperService.getCurrentTimestampInMilliseconds(),
@@ -57,6 +57,7 @@ export class CategoriesService {
     try {
       const category = await this.prisma.categories.create({
         data: {
+          id: this.helperService.generateUniqueId(),
           ...createCategoryDto,
           slug: this.helperService.slugify(createCategoryDto.name),
           createdAtMillis:
@@ -64,7 +65,6 @@ export class CategoriesService {
           updatedAtMillis:
             this.helperService.getCurrentTimestampInMilliseconds(),
         },
-        select: Constants.SELECT_KEYS_FOR_CATEGORIES,
       });
 
       if (!category) {
@@ -82,9 +82,7 @@ export class CategoriesService {
   // This method is used to get all categories
   async getCategories(): Promise<SuccessApiResponse | ErrorApiResponse> {
     try {
-      const categories = await this.prisma.categories.findMany({
-        select: Constants.SELECT_KEYS_FOR_CATEGORIES,
-      });
+      const categories = await this.prisma.categories.findMany({});
 
       if (!categories) {
         return this.responseService.getErrorResponse(
@@ -107,7 +105,6 @@ export class CategoriesService {
         where: {
           id,
         },
-        select: Constants.SELECT_KEYS_FOR_CATEGORIES,
       });
 
       if (!category) {
@@ -138,7 +135,6 @@ export class CategoriesService {
           updatedAtMillis:
             this.helperService.getCurrentTimestampInMilliseconds(),
         },
-        select: Constants.SELECT_KEYS_FOR_CATEGORIES,
       });
 
       if (!category) {

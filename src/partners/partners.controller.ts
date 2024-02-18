@@ -18,6 +18,11 @@ import { PartnersService } from './partners.service';
 export class PartnersController {
   constructor(private readonly partnersService: PartnersService) {}
 
+  @Post('/seed')
+  createPartnersFromSeed() {
+    return this.partnersService.createPartnersFromSeed();
+  }
+
   @Post()
   async createPartner(@Body() createPartnerDto: CreatePartnerDto) {
     return await this.partnersService.addPartner(createPartnerDto);
@@ -68,7 +73,7 @@ export class PartnersController {
   }
 
   @Delete(':id')
-  archivePartner(@Param('partnerId') partnerId: string) {
-    return this.partnersService.archivePartnerById(partnerId);
+  deletePartnerById(@Param('partnerId') partnerId: string) {
+    return this.partnersService.deletePartnerById(partnerId);
   }
 }

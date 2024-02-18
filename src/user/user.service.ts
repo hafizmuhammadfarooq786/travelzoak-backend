@@ -6,7 +6,6 @@ import {
   ResponseService,
   SuccessApiResponse,
 } from 'src/response.service';
-import Constants from 'src/utils/Constants';
 import StringUtils from 'src/utils/StringUtils';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
@@ -67,7 +66,6 @@ export class UserService {
     return await this.prisma.users
       .findUnique({
         where: { id: userId },
-        select: Constants.SELECT_KEYS_FOR_USERS,
       })
       .then((user) => {
         return {
@@ -89,7 +87,6 @@ export class UserService {
         updatedAtMillis: this.helperService.getCurrentTimestampInMilliseconds(),
         ...updateUserDto,
       },
-      select: Constants.SELECT_KEYS_FOR_USERS,
     });
 
     // If user not found, return error response

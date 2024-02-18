@@ -1,4 +1,7 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateTripPhotoDto } from './create-trip-photo.dto';
+import { IsNotEmpty, IsString } from 'class-validator';
 
-export class UpdateTripPhotoDto extends PartialType(CreateTripPhotoDto) {}
+export class UpdateTripPhotoDto {
+  @IsNotEmpty()
+  @IsString()
+  image: string;
+}

@@ -83,8 +83,18 @@ model UserSocialLinks {
   @@map("user_social_links")
 }
 
+model Categories {
+  id              String @id @unique
+  name            String @unique
+  slug            String @unique
+  createdAtMillis BigInt
+  updatedAtMillis BigInt
+
+  @@map("categories")
+}
+
 model Destinations {
-  id              String  @id @unique @default(uuid())
+  id              String  @id @unique
   name            String  @unique
   slug            String  @unique
   coverPhotoUrl   String  @default("")
@@ -101,7 +111,7 @@ model Destinations {
 }
 
 model Partners {
-  id                               String  @id @unique @default(uuid())
+  id                               String  @id @unique
   name                             String  @unique
   slug                             String  @unique
   description                      String  @default("")
@@ -112,86 +122,85 @@ model Partners {
   licenseNo                        String  @default("")
   licenseCopyURL                   String  @default("")
   isArchived                       Boolean @default(false)
-  createdAtMillis                  BigInt
-  updatedAtMillis                  BigInt  @default(0)
   cloudinaryLogoPublicId           String  @default("")
   cloudinaryLicenseCopyURLPublicId String  @default("")
+  createdAtMillis                  BigInt
+  updatedAtMillis                  BigInt
 
   @@map("partners")
 }
 
 model Trips {
-  id                String   @id @unique @default(uuid())
-  title             String   @default("")
-  description       String   @default("")
-  startDate         String   @default("")
-  endDate           String   @default("")
-  startDesitination String   @default("")
-  endDestination    String   @default("")
-  totalDays         Int      @default(0)
-  totalSeats        Int      @default(0)
-  bookedSeats       Int      @default(0)
-  perPersonCharges  Int      @default(0)
-  coupleCharges     Int      @default(0)
-  familyCharges     Int      @default(0)
-  advancePayment    Int      @default(0)
-  roomSharing       Int      @default(0)
-  coverPhotoUrl     String   @default("")
-  thumbnailUrl      String   @default("")
-  placesIncluded    String[] @default([])
-  servicesIncluded  String[] @default([])
-  servicesExcluded  String[] @default([])
-  isArchived        Boolean  @default(false)
-  partnerId         String   @default("")
-  createdAtMillis   BigInt
-  updatedAtMillis   BigInt   @default(0)
+  id                          String   @id @unique
+  title                       String
+  slug                        String   @unique
+  description                 String   @default("")
+  startDate                   String   @default("")
+  endDate                     String   @default("")
+  startDesitination           String   @default("")
+  endDestination              String   @default("")
+  totalDays                   Int      @default(0)
+  totalSeats                  Int      @default(0)
+  bookedSeats                 Int      @default(0)
+  perPersonCharges            Int      @default(0)
+  coupleCharges               Int      @default(0)
+  familyCharges               Int      @default(0)
+  advancePayment              Int      @default(0)
+  roomSharing                 Int      @default(0)
+  coverPhotoUrl               String   @default("")
+  thumbnailUrl                String   @default("")
+  cloudinaryCoverPublicId     String   @default("")
+  cloudinaryThumbnailPublicId String   @default("")
+  placesIncluded              String[] @default([])
+  servicesIncluded            String[] @default([])
+  servicesExcluded            String[] @default([])
+  isArchived                  Boolean  @default(false)
+  partnerId                   String   @default("")
+  createdAtMillis             BigInt
+  updatedAtMillis             BigInt
 
   @@map("trips")
 }
 
 model TripPhotos {
-  id              String   @id @unique @default(uuid())
-  tripId          String   @unique
-  photosUrl       String[] @default([])
-  createdAtMillis BigInt
-  updatedAtMillis BigInt   @default(0)
+  id                 String @id @unique
+  tripId             String @unique
+  photoUrl           String
+  cloudinaryPublicId String
+  createdAtMillis    BigInt
+  updatedAtMillis    BigInt
 
   @@map("trip_photos")
 }
 
-model Categories {
-  id              String @id @unique @default(uuid())
-  name            String @unique
-  slug            String @unique
+model Bookings {
+  id              String  @id @unique
+  userId          String
+  tripId          String
+  totalSeats      Int
+  totalPayment    Int
+  advancePayment  Int
+  remainingAmount Int
+  bookingStatus   Boolean
+  paymentStatus   Boolean
+  bookingDate     String
+  tripStartDate   String
+  tripEndDate     String
   createdAtMillis BigInt
-  updatedAtMillis BigInt @default(0)
+  updatedAtMillis BigInt
 
-  @@map("categories")
+  @@map("bookings")
 }
 
 model Reviews {
-  id              String  @id @unique @default(uuid())
+  id              String  @id @unique
   tripId          String  @unique
+  userId          String  @unique
   rating          Int     @default(0)
   comment         String  @default("")
-  createdAtMillis BigInt
-  updatedAtMillis BigInt  @default(0)
   isPublished     Boolean @default(false)
+  createdAtMillis BigInt
+  updatedAtMillis BigInt
 
   @@map("reviews")
-}
-
-model Bookings {
-  id              String @id @unique @default(uuid())
-  userId          String @unique
-  tripId          String @unique
-  totalSeats      Int    @default(0)
-  totalAmount     Int    @default(0)
-  advancePayment  Int    @default(0)
-  remainingAmount Int    @default(0)
-  status          String @default("")
-  createdAtMillis BigInt
-  updatedAtMillis BigInt @default(0)
-
-  @@map("bookings")
 }

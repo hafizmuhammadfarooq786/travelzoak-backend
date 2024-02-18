@@ -6,7 +6,6 @@ import {
   ResponseService,
   SuccessApiResponse,
 } from 'src/response.service';
-import Constants from 'src/utils/Constants';
 import StringUtils from 'src/utils/StringUtils';
 import { SocialLinkDto } from './dto/social-link.dto';
 import { SocialLinks } from './entities/social-links.entity';
@@ -35,7 +34,6 @@ export class SocialLinksService {
           updatedAtMillis:
             this.helperService.getCurrentTimestampInMilliseconds(),
         },
-        select: Constants.SELECT_KEYS_FOR_SOCIAL_LINKS,
       });
 
       if (!socialLinks) {
@@ -81,7 +79,6 @@ export class SocialLinksService {
           updatedAtMillis:
             this.helperService.getCurrentTimestampInMilliseconds(),
         },
-        select: Constants.SELECT_KEYS_FOR_SOCIAL_LINKS,
       });
 
       if (!udatedSocialLinks) {
@@ -100,7 +97,6 @@ export class SocialLinksService {
     return await this.prisma.userSocialLinks
       .findUnique({
         where: { userId },
-        select: Constants.SELECT_KEYS_FOR_SOCIAL_LINKS,
       })
       .then((userSocialLinks) => {
         return {

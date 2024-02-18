@@ -6,7 +6,6 @@ import {
   ResponseService,
   SuccessApiResponse,
 } from 'src/response.service';
-import Constants from 'src/utils/Constants';
 import StringUtils from 'src/utils/StringUtils';
 import { ContactInfoDto } from './dto/contact-info.dto';
 import { ContactInfo } from './entities/contact-info.entity';
@@ -35,7 +34,6 @@ export class ContactInfoService {
           updatedAtMillis:
             this.helperService.getCurrentTimestampInMilliseconds(),
         },
-        select: Constants.SELECT_KEYS_FOR_CONTACT_INFO,
       });
 
       if (!contactInfo) {
@@ -82,7 +80,6 @@ export class ContactInfoService {
           updatedAtMillis:
             this.helperService.getCurrentTimestampInMilliseconds(),
         },
-        select: Constants.SELECT_KEYS_FOR_CONTACT_INFO,
       });
 
       if (!updatedContactInfo) {
@@ -101,7 +98,6 @@ export class ContactInfoService {
     return await this.prisma.contactInformation
       .findUnique({
         where: { userId },
-        select: Constants.SELECT_KEYS_FOR_CONTACT_INFO,
       })
       .then((userContactInfo) => {
         return {

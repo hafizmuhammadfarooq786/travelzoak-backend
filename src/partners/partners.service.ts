@@ -13,6 +13,7 @@ import { CreatePartnerDto } from './dto/create-partner.dto';
 import { UpdatePartnerLicenseCopyDto } from './dto/update-license-copy.dto';
 import { UpdatePartnerLogoDto } from './dto/update-partner-logo.dto';
 import { UpdatePartnerDto } from './dto/update-partner.dto';
+import { Partners } from './seed';
 
 @Injectable()
 export class PartnersService {
@@ -22,6 +23,50 @@ export class PartnersService {
     private helperService: HelpersService,
     private imageUploadsService: ImageUploadsService,
   ) {}
+
+  // Create partners from seed data
+  async createPartnersFromSeed(): Promise<
+    SuccessApiResponse | ErrorApiResponse
+  > {
+    try {
+      // Create a list of destinations
+      const list = await Promise.all(
+        Partners.map(async (partner) => {
+          const logoImageResponse = await this.imageUploadsService.uploadImage(
+            partner.logoImage,
+            Constants.PARTNER_FOLDER_NAME,
+            partner.name,
+          );
+          return {
+            id: this.helperService.generateUniqueId(),
+            ...partner,
+            logoUrl: logoImageResponse.imageUrl,
+            cloudinaryLogoPublicId: logoImageResponse.publicId,
+            slug: this.helperService.slugify(partner.name),
+            createdAtMillis:
+              this.helperService.getCurrentTimestampInMilliseconds(),
+            updatedAtMillis:
+              this.helperService.getCurrentTimestampInMilliseconds(),
+          };
+        }),
+      );
+
+      // Create destinations
+      const partners = await this.prisma.partners.createMany({
+        data: list,
+      });
+
+      if (!partners) {
+        return this.responseService.getErrorResponse(
+          StringUtils.MESSAGE.FAILED_TO_CREATE_PARTNERS_FROM_SEED,
+        );
+      }
+
+      return this.responseService.getSuccessResponse(partners);
+    } catch (error) {
+      throw this.responseService.getErrorResponse(error);
+    }
+  }
 
   // Add new partner
   async addPartner(
@@ -46,6 +91,7 @@ export class PartnersService {
       }
       const partner = await this.prisma.partners.create({
         data: {
+          id: this.helperService.generateUniqueId(),
           name: createPartnerDto.name,
           slug: this.helperService.slugify(createPartnerDto.name),
           logoUrl: logoImageResponse.imageUrl,
@@ -59,8 +105,9 @@ export class PartnersService {
           cloudinaryLicenseCopyURLPublicId: licenseCopyResponse.publicId,
           createdAtMillis:
             this.helperService.getCurrentTimestampInMilliseconds(),
+          updatedAtMillis:
+            this.helperService.getCurrentTimestampInMilliseconds(),
         },
-        select: Constants.SELECT_KEYS_FOR_PARTNERS,
       });
 
       if (!partner) {
@@ -78,9 +125,7 @@ export class PartnersService {
   // Get all partners
   async getPartners(): Promise<SuccessApiResponse | ErrorApiResponse> {
     try {
-      const partners = await this.prisma.partners.findMany({
-        select: Constants.SELECT_KEYS_FOR_PARTNERS,
-      });
+      const partners = await this.prisma.partners.findMany({});
 
       if (!partners) {
         return this.responseService.getErrorResponse(
@@ -103,7 +148,6 @@ export class PartnersService {
         where: {
           id: partnerId,
         },
-        select: Constants.SELECT_KEYS_FOR_PARTNERS,
       });
 
       if (!partner) {
@@ -139,7 +183,6 @@ export class PartnersService {
           updatedAtMillis:
             this.helperService.getCurrentTimestampInMilliseconds(),
         },
-        select: Constants.SELECT_KEYS_FOR_PARTNERS,
       });
 
       if (!partner) {
@@ -187,7 +230,6 @@ export class PartnersService {
           updatedAtMillis:
             this.helperService.getCurrentTimestampInMilliseconds(),
         },
-        select: Constants.SELECT_KEYS_FOR_PARTNERS,
       });
 
       if (!partner) {
@@ -236,7 +278,6 @@ export class PartnersService {
           updatedAtMillis:
             this.helperService.getCurrentTimestampInMilliseconds(),
         },
-        select: Constants.SELECT_KEYS_FOR_PARTNERS,
       });
 
       if (!partner) {
@@ -252,7 +293,7 @@ export class PartnersService {
   }
 
   // Archive partner by id
-  async archivePartnerById(
+  async deletePartnerById(
     partnerId: string,
   ): Promise<SuccessApiResponse | ErrorApiResponse> {
     try {
@@ -265,7 +306,6 @@ export class PartnersService {
           updatedAtMillis:
             this.helperService.getCurrentTimestampInMilliseconds(),
         },
-        select: Constants.SELECT_KEYS_FOR_PARTNERS,
       });
 
       if (!partner) {

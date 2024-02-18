@@ -16,8 +16,8 @@ export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
   @Post('/seed')
-  createManyCategories() {
-    return this.categoriesService.createManyCategoriesFromSeed();
+  createCategoriesFromSeed() {
+    return this.categoriesService.createCategoriesFromSeed();
   }
 
   @Post()
