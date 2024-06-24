@@ -1,43 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { ContactInfoService } from 'src/contact-info/contact-info.service';
-import { ContactInfoDto } from 'src/contact-info/dto/contact-info.dto';
 import { EmailService } from 'src/email/MailerService';
 import { AuthHelper } from 'src/helpers/AuthHelper';
 import { HelpersService } from 'src/helpers/Helpers';
+import LoggerFactory from 'src/helpers/LoggerFactory';
 import { PrismaService } from 'src/prisma.service';
-import {
-  ErrorApiResponse,
-  ResponseService,
-  SuccessApiResponse,
-} from 'src/response.service';
-import { SocialLinkDto } from 'src/social-links/dto/social-link.dto';
-import { SocialLinksService } from 'src/social-links/social-links.service';
+import { ApiResponseType, ResponseService } from 'src/response.service';
+import { UserAuthVerifiedResponse } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 import Constants from 'src/utils/Constants';
-import StringUtils from 'src/utils/StringUtils';
+import StringUtils from 'src/utils/StringContants';
 import { AuthCodeDto } from './dto/auth-code.dto';
 import { AuthDto } from './dto/auth.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { TokensResponse } from './interfaces/token-response';
-
-const DEFAULT_USER_CONTACT_INFO: ContactInfoDto = {
-  address: '',
-  city: '',
-  country: '',
-  postalCode: '',
-  state: '',
-};
-
-const DEFAULT_USER_SOCIAL_LINKS: SocialLinkDto = {
-  website: '',
-  facebook: '',
-  instagram: '',
-  linkedin: '',
-  youtube: '',
-  tiktok: '',
-};
 
 @Injectable()
 export class UserAuthService {
@@ -50,12 +27,10 @@ export class UserAuthService {
     private readonly emailService: EmailService,
     private readonly responseService: ResponseService,
     private userService: UserService,
-    private contactInfoService: ContactInfoService,
-    private socialLinksService: SocialLinksService,
   ) {}
 
   // onAuthenticate
-  async onAuthenticate(authDto: AuthDto) {
+  async onAuthenticate(authDto: AuthDto): Promise<ApiResponseType<void>> {
     try {
       const { email } = authDto;
       const userAuthCodeId = this.helperService.generateUniqueId();
@@ -103,8 +78,10 @@ export class UserAuthService {
           4- Return response
         */
         // If UserAuthCode is created successfully
-        const isUserCreated = await this.createUser(userId, email);
-        if (isUserCreated) {
+        // create a new user in User Table
+        const userCreated = await this.userService.createUser(userId, email);
+
+        if (userCreated) {
           // Send email to newly created user with a 2FA Code to verify.
           return await this.send2faEmail(email, authCode);
         } else {
@@ -122,7 +99,7 @@ export class UserAuthService {
   // onVerify Auth Code
   async onVerifyAuthCode(
     authCodeDto: AuthCodeDto,
-  ): Promise<SuccessApiResponse | ErrorApiResponse> {
+  ): Promise<UserAuthVerifiedResponse> {
     try {
       const { code, email, deviceId } = authCodeDto;
       const hashedEmail = this.helperService.hashEmail(email);
@@ -132,29 +109,31 @@ export class UserAuthService {
       });
 
       if (!result) {
-        return this.responseService.getBadRequestResponse(
-          StringUtils.MESSAGE.INVALID_CODE,
+        LoggerFactory.getLogger().error(
+          `AUTH: onVerifyAuthCode() user auth code not found, code=${code}, email=${email}, deviceId=${deviceId}`,
         );
+        throw StringUtils.MESSAGE.INVALID_CODE;
       }
 
       const { expiresAtMillis } = result;
       const isExpired = this.authHelper.isTimestampExpired(expiresAtMillis);
       if (isExpired) {
-        // Throw error: The code is expired
-        return this.responseService.getForbiddenResponse(
-          StringUtils.MESSAGE.CODE_EXPIRED,
+        LoggerFactory.getLogger().error(
+          `AUTH: onVerifyAuthCode() Expired code=${code}, email=${email}, deviceId=${deviceId}`,
         );
+        // Throw error: The code is expired
+        throw StringUtils.MESSAGE.CODE_EXPIRED;
       } else {
         // Check for User record againts email address
-        const user = await this.prisma.users.findUnique({
-          where: { email },
-        });
+        const user = await this.userService.findUserByEmail(email);
 
         // If User does not exists in User Table that means user has no account
         if (!user) {
-          return this.responseService.getNotFoundResponse(
-            StringUtils.MESSAGE.USER_NOT_FOUND,
+          LoggerFactory.getLogger().error(
+            `AUTH: onVerifyAuthCode() User not found with email, email=${email}, deviceId=${deviceId}`,
           );
+          // Throw error: The user not found
+          throw StringUtils.MESSAGE.USER_NOT_FOUND;
         }
 
         // Check if userId and deviceId already exists in RefreshToken Table
@@ -165,37 +144,13 @@ export class UserAuthService {
           );
 
         if (isTokenFoundForUserAndDeviceId) {
-          return this.responseService.getBadRequestResponse(
-            StringUtils.MESSAGE.USER_WITH_DEVICE_ID_ALREADY_EXISTS,
-          );
+          throw StringUtils.MESSAGE.USER_WITH_DEVICE_ID_ALREADY_EXISTS;
         }
 
         // Delete AuthCode for User once AuthCode is verified against information
         await this.deleteResultingAuthCode(result.id);
         // Remove Expire UserAuthCode row against information
         await this.deleteExpireAuthCodesForUser(email);
-
-        // Find if User Contact Information exists against userId
-        const contactInfo =
-          await this.contactInfoService.findUserContactInfoById(user.id);
-
-        if (this.helperService.isEmptyObject(contactInfo)) {
-          await this.contactInfoService.addContactInfo(
-            user.id,
-            DEFAULT_USER_CONTACT_INFO,
-          );
-        }
-
-        const socialLinks =
-          await this.socialLinksService.findUserSocialLinksById(user.id);
-        if (this.helperService.isEmptyObject(socialLinks)) {
-          await this.socialLinksService.addSocialLinks(
-            user.id,
-            DEFAULT_USER_SOCIAL_LINKS,
-          );
-        }
-
-        // If User Contact Information exists against userId
 
         // Generate a JWT
         const { accessToken, refreshToken } = await this.generateJWTTokens(
@@ -209,9 +164,7 @@ export class UserAuthService {
         );
 
         if (!isRefreshTokenCreated) {
-          return this.responseService.getErrorResponse(
-            StringUtils.MESSAGE.FAILED_TO_CREATE_REFRESH_TOKEN,
-          );
+          throw StringUtils.MESSAGE.FAILED_TO_CREATE_REFRESH_TOKEN;
         }
 
         // Return response
@@ -220,7 +173,8 @@ export class UserAuthService {
           accessToken: accessToken,
           refreshToken: refreshToken,
         };
-        return this.responseService.getSuccessResponse(data);
+
+        return data;
       }
     } catch (error) {
       throw this.responseService.getErrorResponse(error);
@@ -256,19 +210,6 @@ export class UserAuthService {
     }
   }
 
-  // Create user
-  async createUser(userId: string, email: string): Promise<boolean> {
-    const isUserCreated = await this.prisma.users.create({
-      data: {
-        id: userId,
-        email,
-        createdAtMillis: this.helperService.getCurrentTimestampInMilliseconds(),
-        updatedAtMillis: this.helperService.getCurrentTimestampInMilliseconds(),
-      },
-    });
-    return isUserCreated ? true : false;
-  }
-
   // Create UserAuthCode
   async createUserAuthCode(
     userAuthCodeId: string,
@@ -292,7 +233,7 @@ export class UserAuthService {
   async send2faEmail(
     email: string,
     authCode: string,
-  ): Promise<SuccessApiResponse | ErrorApiResponse> {
+  ): Promise<ApiResponseType<void>> {
     const isEmailSent = await this.emailService.send2faEmail(email, authCode);
     if (isEmailSent) {
       // Return success response
@@ -412,7 +353,7 @@ export class UserAuthService {
   async revokeRefreshToken(
     userId: string,
     resfreshTokenDto: RefreshTokenDto,
-  ): Promise<SuccessApiResponse | ErrorApiResponse> {
+  ): Promise<ApiResponseType<void>> {
     const { deviceId } = resfreshTokenDto;
     if (!userId) {
       return this.responseService.getErrorResponse(
@@ -442,7 +383,7 @@ export class UserAuthService {
     userId: string,
     refreshToken: string,
     refreshTokenDto: RefreshTokenDto,
-  ): Promise<SuccessApiResponse | ErrorApiResponse> {
+  ): Promise<ApiResponseType<TokensResponse>> {
     try {
       const { deviceId } = refreshTokenDto;
       const tokenFound =

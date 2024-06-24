@@ -1,12 +1,8 @@
 import { Injectable } from '@nestjs/common';
+import { ContactInformation } from '@prisma/client';
 import { HelpersService } from 'src/helpers/Helpers';
 import { PrismaService } from 'src/prisma.service';
-import {
-  ErrorApiResponse,
-  ResponseService,
-  SuccessApiResponse,
-} from 'src/response.service';
-import StringUtils from 'src/utils/StringUtils';
+import StringUtils from 'src/utils/StringContants';
 import { ContactInfoDto } from './dto/contact-info.dto';
 import { ContactInfo } from './entities/contact-info.entity';
 
@@ -14,17 +10,15 @@ import { ContactInfo } from './entities/contact-info.entity';
 export class ContactInfoService {
   constructor(
     private prisma: PrismaService,
-    private readonly responseService: ResponseService,
     private helperService: HelpersService,
   ) {}
 
-  // Create User Contact Info
-  async addContactInfo(
+  async addCurrentUserContactInfo(
     userId: string,
     createContactInfoDto: ContactInfoDto,
-  ): Promise<SuccessApiResponse | ErrorApiResponse> {
-    try {
-      const contactInfo = await this.prisma.contactInformation.create({
+  ): Promise<ContactInfo> {
+    const contactInfo: ContactInformation =
+      await this.prisma.contactInformation.create({
         data: {
           id: this.helperService.generateUniqueId(),
           userId: userId,
@@ -36,76 +30,56 @@ export class ContactInfoService {
         },
       });
 
-      if (!contactInfo) {
-        return this.responseService.getErrorResponse(
-          StringUtils.MESSAGE.FAILED_TO_CREATE_CONTACT_INFO,
-        );
-      }
-      return this.responseService.getSuccessResponse(contactInfo);
-    } catch (error) {
-      return this.responseService.getErrorResponse(error);
+    if (!contactInfo) {
+      throw StringUtils.MESSAGE.FAILED_TO_CREATE_CONTACT_INFO;
     }
+    return this.convertPrimaContactInforToContactInfo(contactInfo);
   }
 
-  // Find User Contact Info By User Id
-  async getContactInfoByUserId(
-    userId: string,
-  ): Promise<SuccessApiResponse | ErrorApiResponse> {
-    try {
-      const contactInfo = await this.findUserContactInfoById(userId);
+  async getContactInfoByUserId(userId: string): Promise<ContactInfo> {
+    const contactInfo = await this.prisma.contactInformation.findUnique({
+      where: { userId },
+    });
 
-      if (!contactInfo) {
-        return this.responseService.getErrorResponse(
-          StringUtils.MESSAGE.FAILED_TO_GET_CONTACT_INFO,
-        );
-      }
-      return this.responseService.getSuccessResponse(contactInfo);
-    } catch (error) {
-      return this.responseService.getErrorResponse(error);
+    if (!contactInfo) {
+      return null;
     }
+
+    return this.convertPrimaContactInforToContactInfo(contactInfo);
   }
 
-  // Update User Contact Info By User Id
   async updateContactInfo(
     userId: string,
     updatedContactInfoDto: ContactInfoDto,
-  ): Promise<SuccessApiResponse | ErrorApiResponse> {
-    try {
-      const updatedContactInfo = await this.prisma.contactInformation.update({
-        where: {
-          userId,
-        },
-        data: {
-          ...updatedContactInfoDto,
-          updatedAtMillis:
-            this.helperService.getCurrentTimestampInMilliseconds(),
-        },
-      });
+  ): Promise<ContactInfo> {
+    const updatedContactInfo = await this.prisma.contactInformation.update({
+      where: {
+        userId,
+      },
+      data: {
+        ...updatedContactInfoDto,
+        updatedAtMillis: this.helperService.getCurrentTimestampInMilliseconds(),
+      },
+    });
 
-      if (!updatedContactInfo) {
-        return this.responseService.getErrorResponse(
-          StringUtils.MESSAGE.FAILED_TO_UPDATE_CONTACT_INFO,
-        );
-      }
-      return this.responseService.getSuccessResponse(updatedContactInfo);
-    } catch (error) {
-      return this.responseService.getErrorResponse(error);
+    if (!updatedContactInfo) {
+      throw StringUtils.MESSAGE.FAILED_TO_UPDATE_CONTACT_INFO;
     }
+
+    return this.getContactInfoByUserId(updatedContactInfo.id);
   }
 
-  // Find user by id and return user Contact Info details
-  async findUserContactInfoById(userId: string): Promise<ContactInfo> {
-    return await this.prisma.contactInformation
-      .findUnique({
-        where: { userId },
-      })
-      .then((userContactInfo) => {
-        return {
-          ...userContactInfo,
-        };
-      })
-      .catch((error) => {
-        throw error.message;
-      });
+  async convertPrimaContactInforToContactInfo(
+    information: ContactInformation,
+  ): Promise<ContactInfo> {
+    return {
+      id: information.id,
+      userId: information.userId,
+      address: information.address,
+      city: information.city,
+      country: information.country,
+      postalCode: information.postalCode,
+      state: information.state,
+    };
   }
 }

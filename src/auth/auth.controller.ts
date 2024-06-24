@@ -1,4 +1,7 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import LoggerFactory from 'src/helpers/LoggerFactory';
+import { ApiResponseType, ResponseService } from 'src/response.service';
+import { UserAuthVerifiedResponse } from 'src/user/entities/user.entity';
 import { UserAuthService } from './auth.service';
 import {
   CurrentUserDectorator,
@@ -12,7 +15,10 @@ import { RefreshTokenGuard } from './guards/refreshToken.guard';
 
 @Controller()
 export class AuthController {
-  constructor(private readonly userAuthService: UserAuthService) {}
+  constructor(
+    private readonly userAuthService: UserAuthService,
+    private readonly responseService: ResponseService,
+  ) {}
 
   // Authentication Route
   @Public()
@@ -24,8 +30,19 @@ export class AuthController {
   // Verify Code Route
   @Public()
   @Post('verifyCode')
-  async onVerify(@Body() authCodeDto: AuthCodeDto) {
-    return await this.userAuthService.onVerifyAuthCode(authCodeDto);
+  async onVerify(
+    @Body() authCodeDto: AuthCodeDto,
+  ): Promise<ApiResponseType<UserAuthVerifiedResponse>> {
+    try {
+      const response = await this.userAuthService.onVerifyAuthCode(authCodeDto);
+      LoggerFactory.getLogger().debug(
+        `AUTH: onVerify() success response=${JSON.stringify(response)}`,
+      );
+      return this.responseService.getSuccessResponse(response);
+    } catch (error) {
+      LoggerFactory.getLogger().error(`AUTH: onVerify() error=${error}`);
+      return this.responseService.getErrorResponse(error);
+    }
   }
 
   // Resend Verify Code Route

@@ -1,12 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
 import { PrismaService } from 'src/prisma.service';
-import {
-  ErrorApiResponse,
-  ResponseService,
-  SuccessApiResponse,
-} from 'src/response.service';
-import StringUtils from 'src/utils/StringUtils';
+import { ApiResponseType, ResponseService } from 'src/response.service';
+import StringUtils from 'src/utils/StringContants';
 import { userRoles } from './seed';
 
 @Injectable()
@@ -17,38 +13,37 @@ export class UserRolesService {
   ) {}
 
   // Create User Roles from seed
-  async createUserRolesFromSeed(): Promise<
-    SuccessApiResponse | ErrorApiResponse
-  > {
+  async createUserRolesFromSeed(): Promise<ApiResponseType<void>> {
     try {
-      const userRole = await this.prisma.userRoles.createMany({
+      const roles = await this.prisma.userRoles.createMany({
         data: userRoles,
+        skipDuplicates: true,
       });
 
-      if (!userRole) {
+      if (!roles) {
         return this.responseService.getErrorResponse(
           StringUtils.MESSAGE.FAILED_TO_CREATE_USER_ROLES_FROM_SEED,
         );
       }
 
-      return this.responseService.getSuccessResponse(userRole);
+      return this.responseService.getSuccessResponse(roles);
     } catch (error) {
       throw this.responseService.getErrorResponse(error);
     }
   }
 
   // Get All User Roles
-  async getUserRoles(): Promise<SuccessApiResponse | ErrorApiResponse> {
+  async getUserRoles(): Promise<ApiResponseType<any>> {
     try {
-      const userRoles = await this.prisma.userRoles.findMany({});
+      const roles = await this.prisma.userRoles.findMany({});
 
-      if (!userRoles) {
+      if (!roles) {
         return this.responseService.getErrorResponse(
           StringUtils.MESSAGE.FAILED_TO_GET_USER_ROLES,
         );
       }
 
-      return this.responseService.getSuccessResponse(userRoles);
+      return this.responseService.getSuccessResponse(roles);
     } catch (error) {
       throw this.responseService.getErrorResponse(error);
     }

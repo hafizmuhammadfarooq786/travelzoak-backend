@@ -1,7 +1,4 @@
-export const Categories = [
-  { name: 'Discounted 12' },
-  { name: 'Discounted 11' },
-  { name: 'Sporting Tour' },
+export const CategoriesSeed = [
   { name: 'Adventure Tour' },
   { name: 'Cultural Tour' },
   { name: 'Summer Camps Tour' },

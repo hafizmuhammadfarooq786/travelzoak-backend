@@ -6,7 +6,12 @@ const Constants = {
   API_METHODS: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   PARTNER_FOLDER_NAME: 'partners',
   TRIPS_FOLDER_NAME: 'trips',
-  TRIPS_PHOTOS_FOLDER_NAME: 'trips_photos',
+  TRIPS_PHOTOS_FOLDER_NAME: 'tripsPhotos',
+  ENV_VARS: {
+    NODE_ENV: 'NODE_ENV',
+    JWT_ACCESS_SECRET: 'JWT_ACCESS_SECRET',
+    JWT_REFRESH_SECRET: 'JWT_REFRESH_SECRET',
+  },
 };
 
 export default Constants;

@@ -1,12 +1,5 @@
-import { IsString } from 'class-validator';
-
-export class Category {
-  @IsString()
+export class TravelzoakCategory {
   id: string;
-
-  @IsString()
   name: string;
-
-  @IsString()
   slug: string;
 }

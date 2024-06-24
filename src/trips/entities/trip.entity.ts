@@ -1,7 +1,7 @@
-export class Trip {
-  id?: string;
+export class TravelzoakTrip {
+  id: string;
   title: string;
-  slug?: string;
+  slug: string;
   description: string;
   startDate: string;
   endDate: string;
@@ -22,6 +22,6 @@ export class Trip {
   servicesExcluded: string[];
   isArchived: boolean;
   partnerId: string;
-  createdAtMillis?: number | bigint;
-  updatedAtMillis?: number | bigint;
+  createdAtMillis: number;
+  updatedAtMillis: number;
 }

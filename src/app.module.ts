@@ -1,9 +1,11 @@
 import { MailerModule } from '@nestjs-modules/mailer';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { AccessTokenGuard } from './auth/guards/accessToken.guard';
 import { BookingsModule } from './bookings/bookings.module';
 import { CategoriesModule } from './categories/categories.module';
 import { CategoriesService } from './categories/categories.service';
@@ -18,9 +20,6 @@ import { PartnersService } from './partners/partners.service';
 import { PrismaService } from './prisma.service';
 import { ResponseService } from './response.service';
 import { ReviewsModule } from './reviews/reviews.module';
-import { SentryErrorHandler } from './sentry/sentry-error-handler';
-import { SentryModule } from './sentry/sentry.module';
-import { SentryService } from './sentry/sentry.service';
 import { SocialLinksModule } from './social-links/social-links.module';
 import { TripPhotosModule } from './trip-photos/trip-photos.module';
 import { TripPhotosService } from './trip-photos/trip-photos.service';
@@ -49,7 +48,6 @@ import { UserModule } from './user/user.module';
 
     UserModule,
     AuthModule,
-    SentryModule,
     UserRolesModule,
     ContactInfoModule,
     SocialLinksModule,
@@ -65,7 +63,6 @@ import { UserModule } from './user/user.module';
   providers: [
     AppService,
     EmailService,
-    SentryService,
     UserRolesService,
     CategoriesService,
     DestinationsService,
@@ -76,7 +73,7 @@ import { UserModule } from './user/user.module';
     ResponseService,
     HelpersService,
     ImageUploadsService,
-    { provide: 'ErrorHandlerAPI', useClass: SentryErrorHandler },
+    { provide: APP_GUARD, useClass: AccessTokenGuard },
   ],
 })
 export class AppModule {}

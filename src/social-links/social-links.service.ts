@@ -1,30 +1,24 @@
 import { Injectable } from '@nestjs/common';
+import { UserSocialLinks } from '@prisma/client';
 import { HelpersService } from 'src/helpers/Helpers';
 import { PrismaService } from 'src/prisma.service';
-import {
-  ErrorApiResponse,
-  ResponseService,
-  SuccessApiResponse,
-} from 'src/response.service';
-import StringUtils from 'src/utils/StringUtils';
+import StringUtils from 'src/utils/StringContants';
 import { SocialLinkDto } from './dto/social-link.dto';
-import { SocialLinks } from './entities/social-links.entity';
+import { SocialMediaLinks } from './entities/social-links.entity';
 
 @Injectable()
 export class SocialLinksService {
   constructor(
     private prisma: PrismaService,
-    private readonly responseService: ResponseService,
     private helperService: HelpersService,
   ) {}
 
-  // Create User Social Links
   async addSocialLinks(
     userId: string,
     createSocialLinkDto: SocialLinkDto,
-  ): Promise<SuccessApiResponse | ErrorApiResponse> {
-    try {
-      const socialLinks = await this.prisma.userSocialLinks.create({
+  ): Promise<SocialMediaLinks> {
+    const socialLinks: UserSocialLinks =
+      await this.prisma.userSocialLinks.create({
         data: {
           id: this.helperService.generateUniqueId(),
           userId: userId,
@@ -36,75 +30,57 @@ export class SocialLinksService {
         },
       });
 
-      if (!socialLinks) {
-        return this.responseService.getErrorResponse(
-          StringUtils.MESSAGE.FAILED_TO_CREATE_SOCIAL_LINKS,
-        );
-      }
-      return this.responseService.getSuccessResponse(socialLinks);
-    } catch (error) {
-      return this.responseService.getErrorResponse(error);
+    if (!socialLinks) {
+      throw StringUtils.MESSAGE.FAILED_TO_CREATE_SOCIAL_LINKS;
     }
+    return this.convertPrimaUserSocialLinksToSocialMediaLinks(socialLinks);
   }
 
-  // Get User Social Links By User Id
-  async getSocialLinksByUserId(
-    userId: string,
-  ): Promise<SuccessApiResponse | ErrorApiResponse> {
-    try {
-      const userSocialLinks = await this.findUserSocialLinksById(userId);
-      if (!userSocialLinks) {
-        return this.responseService.getErrorResponse(
-          StringUtils.MESSAGE.FAILED_TO_GET_SOCIAL_LINKS,
-        );
-      }
-      return this.responseService.getSuccessResponse(userSocialLinks);
-    } catch (error) {
-      return this.responseService.getErrorResponse(error);
+  async getSocialLinksByUserId(userId: string): Promise<SocialMediaLinks> {
+    const userSocialLinks = await this.prisma.userSocialLinks.findUnique({
+      where: { userId },
+    });
+
+    if (!userSocialLinks) {
+      return null;
     }
+
+    return this.convertPrimaUserSocialLinksToSocialMediaLinks(userSocialLinks);
   }
 
-  // Update User Social Links By User Id
   async updateSocialLinks(
     userId: string,
     updatedSocialLinkDto: SocialLinkDto,
-  ): Promise<SuccessApiResponse | ErrorApiResponse> {
-    try {
-      const udatedSocialLinks = await this.prisma.userSocialLinks.update({
-        where: {
-          userId,
-        },
-        data: {
-          ...updatedSocialLinkDto,
-          updatedAtMillis:
-            this.helperService.getCurrentTimestampInMilliseconds(),
-        },
-      });
+  ): Promise<SocialMediaLinks> {
+    const udatedSocialLinks = await this.prisma.userSocialLinks.update({
+      where: {
+        userId,
+      },
+      data: {
+        ...updatedSocialLinkDto,
+        updatedAtMillis: this.helperService.getCurrentTimestampInMilliseconds(),
+      },
+    });
 
-      if (!udatedSocialLinks) {
-        return this.responseService.getErrorResponse(
-          StringUtils.MESSAGE.FAILED_TO_UPDATE_SOCIAL_LINKS,
-        );
-      }
-      return this.responseService.getSuccessResponse(udatedSocialLinks);
-    } catch (error) {
-      return this.responseService.getErrorResponse(error);
+    if (!udatedSocialLinks) {
+      throw StringUtils.MESSAGE.FAILED_TO_UPDATE_SOCIAL_LINKS;
     }
+
+    return await this.getSocialLinksByUserId(userId);
   }
 
-  // Find user by id and return user social link details
-  async findUserSocialLinksById(userId: string): Promise<SocialLinks> {
-    return await this.prisma.userSocialLinks
-      .findUnique({
-        where: { userId },
-      })
-      .then((userSocialLinks) => {
-        return {
-          ...userSocialLinks,
-        };
-      })
-      .catch((error) => {
-        throw error.message;
-      });
+  async convertPrimaUserSocialLinksToSocialMediaLinks(
+    userSocialLinks: UserSocialLinks,
+  ): Promise<SocialMediaLinks> {
+    return {
+      id: userSocialLinks.id,
+      userId: userSocialLinks.userId,
+      facebook: userSocialLinks.facebook,
+      instagram: userSocialLinks.instagram,
+      linkedin: userSocialLinks.linkedin,
+      tiktok: userSocialLinks.tiktok,
+      youtube: userSocialLinks.youtube,
+      website: userSocialLinks.website,
+    };
   }
 }

@@ -57,6 +57,7 @@ const StringUtils = {
     ACCESS_DENIED: 'Access denied',
     INVALID_USER_ID: 'Invalid user id',
     USER_NOT_FOUND: 'User not found',
+    FAILED_TO_CREATE_USER: 'Failed to create new user',
     FAILED_TO_CREATE_USER_ROLES_FROM_SEED:
       'Failed to create user roles from seed',
     FAILED_TO_GET_USER_ROLES: 'Failed to get user roles',

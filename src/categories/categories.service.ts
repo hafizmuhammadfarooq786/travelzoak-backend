@@ -1,15 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { CategoryDto } from './dto/category.dto';
 
+import { Categories } from '@prisma/client';
 import { HelpersService } from 'src/helpers/Helpers';
 import { PrismaService } from 'src/prisma.service';
-import {
-  ErrorApiResponse,
-  ResponseService,
-  SuccessApiResponse,
-} from 'src/response.service';
-import StringUtils from 'src/utils/StringUtils';
-import { Categories } from './seed';
+import { ApiResponseType, ResponseService } from 'src/response.service';
+import StringUtils from 'src/utils/StringContants';
+import { TravelzoakCategory } from './entities/category.entity';
+import { CategoriesSeed } from './seed';
 
 @Injectable()
 export class CategoriesService {
@@ -19,13 +17,10 @@ export class CategoriesService {
     private helperService: HelpersService,
   ) {}
 
-  // This method is used to create categories from seed data
-  async createCategoriesFromSeed(): Promise<
-    SuccessApiResponse | ErrorApiResponse
-  > {
+  async createCategoriesFromSeed(): Promise<ApiResponseType<void>> {
     try {
       // Create a list of destinations
-      const list = Categories.map((category) => ({
+      const list = CategoriesSeed.map((category) => ({
         id: this.helperService.generateUniqueId(),
         ...category,
         slug: this.helperService.slugify(category.name),
@@ -36,6 +31,7 @@ export class CategoriesService {
       // Create destinations
       const categories = await this.prisma.categories.createMany({
         data: list,
+        skipDuplicates: true,
       });
 
       if (!categories) {
@@ -50,125 +46,102 @@ export class CategoriesService {
     }
   }
 
-  // This method is used to create a new category
   async addCategory(
     createCategoryDto: CategoryDto,
-  ): Promise<SuccessApiResponse | ErrorApiResponse> {
-    try {
-      const category = await this.prisma.categories.create({
-        data: {
-          id: this.helperService.generateUniqueId(),
-          ...createCategoryDto,
-          slug: this.helperService.slugify(createCategoryDto.name),
-          createdAtMillis:
-            this.helperService.getCurrentTimestampInMilliseconds(),
-          updatedAtMillis:
-            this.helperService.getCurrentTimestampInMilliseconds(),
-        },
-      });
+  ): Promise<TravelzoakCategory> {
+    const category = await this.prisma.categories.create({
+      data: {
+        id: this.helperService.generateUniqueId(),
+        ...createCategoryDto,
+        slug: this.helperService.slugify(createCategoryDto.name),
+        createdAtMillis: this.helperService.getCurrentTimestampInMilliseconds(),
+        updatedAtMillis: this.helperService.getCurrentTimestampInMilliseconds(),
+      },
+    });
 
-      if (!category) {
-        return this.responseService.getErrorResponse(
-          StringUtils.MESSAGE.FAILED_TO_CREATE_CATEGORY,
-        );
-      }
-
-      return this.responseService.getSuccessResponse(category);
-    } catch (error) {
-      throw this.responseService.getErrorResponse(error);
+    if (!category) {
+      throw StringUtils.MESSAGE.FAILED_TO_CREATE_CATEGORY;
     }
+
+    return this.convertPrimsaCategoryToTravelzoakCategory(category);
   }
 
-  // This method is used to get all categories
-  async getCategories(): Promise<SuccessApiResponse | ErrorApiResponse> {
-    try {
-      const categories = await this.prisma.categories.findMany({});
+  async getCategories(): Promise<TravelzoakCategory[]> {
+    const categories = await this.prisma.categories.findMany({});
 
-      if (!categories) {
-        return this.responseService.getErrorResponse(
-          StringUtils.MESSAGE.FAILED_TO_GET_CATEGORIES,
-        );
-      }
-
-      return this.responseService.getSuccessResponse(categories);
-    } catch (error) {
-      throw this.responseService.getErrorResponse(error);
+    if (categories.length === 0) {
+      return [];
     }
+
+    const results = await Promise.all(
+      categories.map(async (category) => {
+        return await this.convertPrimsaCategoryToTravelzoakCategory(category);
+      }),
+    );
+
+    return results;
   }
 
   // This method is used to get a category by id
-  async getCategoryById(
-    id: string,
-  ): Promise<SuccessApiResponse | ErrorApiResponse> {
-    try {
-      const category = await this.prisma.categories.findUnique({
-        where: {
-          id,
-        },
-      });
+  async getCategoryById(id: string): Promise<TravelzoakCategory> {
+    const category = await this.prisma.categories.findUnique({
+      where: {
+        id,
+      },
+    });
 
-      if (!category) {
-        return this.responseService.getErrorResponse(
-          StringUtils.MESSAGE.INAVLID_CATEGORY_ID,
-        );
-      }
-
-      return this.responseService.getSuccessResponse(category);
-    } catch (error) {
-      throw this.responseService.getErrorResponse(error);
+    if (!category) {
+      throw StringUtils.MESSAGE.INAVLID_CATEGORY_ID;
     }
+
+    return this.convertPrimsaCategoryToTravelzoakCategory(category);
   }
 
   // This method is used to update a category by id
   async updateCategoryById(
     id: string,
     updateCategoryDto: CategoryDto,
-  ): Promise<SuccessApiResponse | ErrorApiResponse> {
-    try {
-      const category = await this.prisma.categories.update({
-        where: {
-          id,
-        },
-        data: {
-          ...updateCategoryDto,
-          slug: this.helperService.slugify(updateCategoryDto.name),
-          updatedAtMillis:
-            this.helperService.getCurrentTimestampInMilliseconds(),
-        },
-      });
+  ): Promise<TravelzoakCategory> {
+    const category = await this.prisma.categories.update({
+      where: {
+        id,
+      },
+      data: {
+        ...updateCategoryDto,
+        slug: this.helperService.slugify(updateCategoryDto.name),
+        updatedAtMillis: this.helperService.getCurrentTimestampInMilliseconds(),
+      },
+    });
 
-      if (!category) {
-        return this.responseService.getErrorResponse(
-          StringUtils.MESSAGE.FAILED_TO_UPDATE_CATEGORY,
-        );
-      }
-
-      return this.responseService.getSuccessResponse(category);
-    } catch (error) {
-      throw this.responseService.getErrorResponse(error);
+    if (!category) {
+      throw StringUtils.MESSAGE.FAILED_TO_UPDATE_CATEGORY;
     }
+
+    return this.getCategoryById(category.id);
   }
 
   // This method is used to remove a category by id
-  async removeCategoryById(
-    id: string,
-  ): Promise<SuccessApiResponse | ErrorApiResponse> {
-    try {
-      const category = await this.prisma.categories.delete({
-        where: {
-          id,
-        },
-      });
+  async deleteCategoryById(id: string): Promise<boolean> {
+    const category = await this.prisma.categories.delete({
+      where: {
+        id,
+      },
+    });
 
-      if (!category) {
-        return this.responseService.getErrorResponse(
-          StringUtils.MESSAGE.FAILED_TO_DELETE_CATEGORY,
-        );
-      }
-
-      return this.responseService.getSuccessResponse();
-    } catch (error) {
-      throw this.responseService.getErrorResponse(error);
+    if (!category) {
+      throw StringUtils.MESSAGE.FAILED_TO_DELETE_CATEGORY;
     }
+
+    return true;
+  }
+
+  async convertPrimsaCategoryToTravelzoakCategory(
+    category: Categories,
+  ): Promise<TravelzoakCategory> {
+    return {
+      id: category.id,
+      name: category.name,
+      slug: category.slug,
+    };
   }
 }

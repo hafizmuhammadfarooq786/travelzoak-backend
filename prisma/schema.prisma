@@ -20,10 +20,10 @@ model Users {
   cnicNumber        String @default("")
   cnicExpiry        String @default("")
   cnicFrontPhotoUrl String @default("")
-  CnicBackCopyUrl   String @default("")
+  cnicBackCopyUrl   String @default("")
   roleId            String @default("")
   createdAtMillis   BigInt
-  updatedAtMillis   BigInt
+  updatedAtMillis   BigInt @default(0)
 
   @@map("users")
 }
@@ -63,7 +63,7 @@ model ContactInformation {
   postalCode      String @default("")
   state           String @default("")
   createdAtMillis BigInt
-  updatedAtMillis BigInt
+  updatedAtMillis BigInt @default(0)
 
   @@map("contact_information")
 }
@@ -78,7 +78,7 @@ model UserSocialLinks {
   youtube         String @default("")
   tiktok          String @default("")
   createdAtMillis BigInt
-  updatedAtMillis BigInt
+  updatedAtMillis BigInt @default(0)
 
   @@map("user_social_links")
 }
@@ -88,7 +88,7 @@ model Categories {
   name            String @unique
   slug            String @unique
   createdAtMillis BigInt
-  updatedAtMillis BigInt
+  updatedAtMillis BigInt @default(0)
 
   @@map("categories")
 }
@@ -105,7 +105,7 @@ model Destinations {
   description     String  @default("")
   isArchived      Boolean @default(false)
   createdAtMillis BigInt
-  updatedAtMillis BigInt
+  updatedAtMillis BigInt  @default(0)
 
   @@map("destinations")
 }
@@ -125,7 +125,7 @@ model Partners {
   cloudinaryLogoPublicId           String  @default("")
   cloudinaryLicenseCopyURLPublicId String  @default("")
   createdAtMillis                  BigInt
-  updatedAtMillis                  BigInt
+  updatedAtMillis                  BigInt  @default(0)
 
   @@map("partners")
 }
@@ -157,18 +157,18 @@ model Trips {
   isArchived                  Boolean  @default(false)
   partnerId                   String   @default("")
   createdAtMillis             BigInt
-  updatedAtMillis             BigInt
+  updatedAtMillis             BigInt   @default(0)
 
   @@map("trips")
 }
 
 model TripPhotos {
-  id                 String @id @unique
-  tripId             String @unique
-  photoUrl           String
-  cloudinaryPublicId String
+  id                 String   @id @unique
+  tripId             String   @unique
+  photoUrl           String[]
+  cloudinaryPublicId String[]
   createdAtMillis    BigInt
-  updatedAtMillis    BigInt
+  updatedAtMillis    BigInt   @default(0)
 
   @@map("trip_photos")
 }
@@ -187,7 +187,7 @@ model Bookings {
   tripStartDate   String
   tripEndDate     String
   createdAtMillis BigInt
-  updatedAtMillis BigInt
+  updatedAtMillis BigInt  @default(0)
 
   @@map("bookings")
 }
@@ -200,7 +200,7 @@ model Reviews {
   comment         String  @default("")
   isPublished     Boolean @default(false)
   createdAtMillis BigInt
-  updatedAtMillis BigInt
+  updatedAtMillis BigInt  @default(0)
 
   @@map("reviews")
 }

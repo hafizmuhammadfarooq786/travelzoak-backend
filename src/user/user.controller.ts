@@ -1,39 +1,41 @@
 import { Body, Controller, Get, Param, Patch } from '@nestjs/common';
-import { CurrentUserIdDectorator } from 'src/auth/decorators';
+import LoggerFactory from 'src/helpers/LoggerFactory';
+import { ApiResponseType, ResponseService } from 'src/response.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { User } from './entities/user.entity';
 import { UserService } from './user.service';
 
 @Controller('users')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly responseService: ResponseService,
+  ) {}
 
-  // Get Current User
   @Get()
-  getCurrentUser(@CurrentUserIdDectorator() userId: string) {
-    return this.userService.getUser(userId);
+  async getAllUser(): Promise<ApiResponseType<User[]>> {
+    try {
+      const users = await this.userService.getAllUser();
+      LoggerFactory.getLogger().debug(
+        `USERS: getAllUser() success response=${JSON.stringify(users)}`,
+      );
+      return this.responseService.getSuccessResponse(users);
+    } catch (error) {
+      LoggerFactory.getLogger().error(`USERS: getAllUser() error=${error}`);
+      return this.responseService.getErrorResponse(error);
+    }
   }
 
-  // Get User By Id
-  @Get(':userId')
-  getUserById(@Param('userId') userId: string) {
-    return this.userService.getUser(userId);
+  @Get(':id')
+  async getUserById(@Param('id') id: string) {
+    return await this.userService.getUser(id);
   }
 
-  // Update Current User
-  @Patch()
-  updateCurrentUser(
-    @CurrentUserIdDectorator() userId: string,
+  @Patch(':id')
+  async updateUserById(
+    @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
   ) {
-    return this.userService.updateUserById(userId, updateUserDto);
-  }
-
-  // Update User By Id
-  @Patch(':userId')
-  findAndUpdateUserById(
-    @Param('userId') userId: string,
-    @Body() updateUserDto: UpdateUserDto,
-  ) {
-    return this.userService.updateUserById(userId, updateUserDto);
+    return await this.userService.updateUserById(id, updateUserDto);
   }
 }

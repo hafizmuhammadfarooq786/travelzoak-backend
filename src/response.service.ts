@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import StringUtils from './utils/StringUtils';
+import StringUtils from './utils/StringContants';
 
-export type SuccessApiResponse = {
+export type ApiResponseType<T> = SuccessApiResponse<T> | ErrorApiResponse;
+
+export type SuccessApiResponse<T> = {
   code: number;
   status: string;
   message: string;
-  data?: any;
+  data?: T;
 };
 
 export type ErrorApiResponse = {
@@ -14,9 +16,18 @@ export type ErrorApiResponse = {
   message: string;
 };
 
+export type SeedResponse = {
+  code: number;
+  status: string;
+  message: string;
+  data: {
+    count: number;
+  };
+};
+
 @Injectable()
 export class ResponseService {
-  getSuccessResponse(data?: any): SuccessApiResponse {
+  getSuccessResponse<T>(data?: T): SuccessApiResponse<T> {
     return {
       code: StringUtils.CODE.OK,
       status: StringUtils.STATUS.SUCCESS,
@@ -25,11 +36,11 @@ export class ResponseService {
     };
   }
 
-  getErrorResponse(message: any): ErrorApiResponse {
+  getErrorResponse(error: any): ErrorApiResponse {
     return {
       code: StringUtils.CODE.BAD_REQUEST,
       status: StringUtils.STATUS.ERROR,
-      message,
+      message: typeof error === 'string' ? error : JSON.stringify(error),
     };
   }
 

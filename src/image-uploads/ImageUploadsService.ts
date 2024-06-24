@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { v2 as cloudinary } from 'cloudinary';
-import StringUtils from 'src/utils/StringUtils';
+import StringUtils from 'src/utils/StringContants';
 
 type ImageUploadResponse = {
   imageUrl: string;
